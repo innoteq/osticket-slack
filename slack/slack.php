@@ -65,3 +65,5 @@ class SlackPlugin extends Plugin {
         }
     }
 }
+
+?>
