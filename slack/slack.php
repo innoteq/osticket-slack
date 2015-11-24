@@ -20,10 +20,10 @@ class SlackPlugin extends Plugin {
                 array (
                     array (
                         'pretext' => "Создана новая заявка <" . $ost->getConfig()->getUrl() . "scp/tickets.php?id="
-                        . $ticket->getId() . "|#" . $ticket->getNumber() . "> в категории ". Format::htmlchars($ticket->getDept() instanceof Dept ? $ticket->getDept()->getName() : '')
+                        . $ticket->getId() . "|#" . $ticket->getNumber() . "> в отделе ". Format::htmlchars($ticket->getDept() instanceof Dept ? $ticket->getDept()->getName() : '')
                         ." через " . $ticket->getSource() . " (" . Format::db_datetime($ticket->getCreateDate()) . " MSK)",
                         'fallback' => "Создана новая заявка <" . $ost->getConfig()->getUrl() . "scp/tickets.php?id="
-                        . $ticket->getId() . "|#" . $ticket->getNumber() . "> в категории ". Format::htmlchars($ticket->getDept() instanceof Dept ? $ticket->getDept()->getName() : '')
+                        . $ticket->getId() . "|#" . $ticket->getNumber() . "> в отделе ". Format::htmlchars($ticket->getDept() instanceof Dept ? $ticket->getDept()->getName() : '')
                         ." через " . $ticket->getSource() . " (" . Format::db_datetime($ticket->getCreateDate()) . " MSK)",
                         'color' => "#D00000",
                         'fields' =>
@@ -38,8 +38,16 @@ class SlackPlugin extends Plugin {
                 ),
             );
 
-            $data_string = utf8_encode(json_encode($payload));
+            if ($ticket->getDept() instanceof Dept) {
+                $id = $ticket->getDept()->getId();
+                $channel = self::getConfig()->get("slack_department_id_".$id);
+                if ($channel) {
+                    $payload["channel"] = $channel;
+                }
+            }
+
             $url = $this->getConfig()->get('slack-webhook-url');
+            $data_string = utf8_encode(json_encode($payload));
 
             if (!function_exists('curl_init')){
                 error_log('osticket slackplugin error: cURL is not installed!');
