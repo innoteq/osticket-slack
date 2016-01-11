@@ -40,6 +40,14 @@ class SlackPluginConfig extends PluginConfig {
                     'configuration' => array('size'=>40, 'length'=>60),
                     )
                 );
+            $options['slack_department_regex_id_'.$id] = new TextboxField(
+                array(
+                    'id' => "slack_department_regex_id_".$id,
+                    'label' => $department . ' regex filter (subj/body)',
+                    'hint' => '/regexp/',
+                    'configuration' => array('size'=>40, 'length'=>200),
+                    )
+                );
         }
         return $options;
     }

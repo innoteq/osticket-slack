@@ -14,7 +14,7 @@ class SlackPlugin extends Plugin {
     function onTicketCreated($ticket){
         try {
             global $ost;
-
+            $subject = $ticket->getSubject();
             $payload = array(
                 'attachments' =>
                 array (
@@ -30,7 +30,7 @@ class SlackPlugin extends Plugin {
                         array(
                             array (
                                 'title' => mb_convert_case(Format::htmlchars($ticket->getName()), MB_CASE_TITLE) . " (".$ticket->getEmail().")",
-                                'value' => $ticket->getSubject(), // $ticket->getLastMessage()->getBody()
+                                'value' => $subject,
                                 'short' => false
                             ),
                         ),
@@ -38,11 +38,21 @@ class SlackPlugin extends Plugin {
                 ),
             );
 
+            $regex = NULL;
             if ($ticket->getDept() instanceof Dept) {
                 $id = $ticket->getDept()->getId();
                 $channel = self::getConfig()->get("slack_department_id_".$id);
+                $regex = self::getConfig()->get("slack_department_regex_id_".$id);
                 if ($channel) {
                     $payload["channel"] = $channel;
+                }
+            }
+
+            if ($regex) {
+                $message = $ticket->getLastMessage()->getBody()->getClean();
+                if (!preg_match($regex, $subject) || !preg_match($regex, $message)) {
+                    error_log('The message was ignored due to regex mismatch.');
+                    return;
                 }
             }
 
